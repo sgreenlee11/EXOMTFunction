@@ -1,0 +1,71 @@
+# Input bindings are passed in via param block.
+param($Timer)
+
+# Get the current universal time in the default string format
+$currentUTCtime = (Get-Date).ToUniversalTime()
+
+# Write an information log with the current time.
+Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
+
+#Specify Username with EXO Message trace permissions
+$username = "admin@M365x002534.onmicrosoft.com"
+
+#Retrieve Account password from Credential Vault
+# Our Key Vault Credential that we want to retreive URI - Update with customer
+$vaultSecretURI = "https://sgo365key.vault.azure.net/secrets/ExoPassword/4cff04fe564b4a668a83262210b2156a"
+$vaultSecretURI = $vaultSecretURI + "?api-version=7.0"
+
+#Values for local token service
+
+$apiVersion = "2017-09-01"
+$resourceURI = "https://vault.azure.net"
+$tokenAuthURI = $env:MSI_ENDPOINT + "?resource=$resourceURI&api-version=$apiVersion"
+$tokenResponse = Invoke-RestMethod -Method Get -Headers @{"Secret"="$env:MSI_SECRET"} -Uri $tokenAuthURI
+
+# Use Key Vault AuthN Token to create Request Header
+$requestHeader = @{ Authorization = "Bearer $($tokenresponse.access_token)" }
+# Call the Vault and Retrieve Creds
+$password = Invoke-RestMethod -Method GET -Uri $vaultSecretURI -ContentType 'application/json' -Headers $requestHeader
+
+#Create Credential Object
+$securepassword = ConvertTo-SecureString $password.value -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential ($username, $securepassword)
+
+#Connect to EXO PowerShell - Not working as the module does not yet support PS Core.
+#Import-Module ExchangeOnlineManagement
+#Connect-ExchangeOnline -Credential $cred
+
+$session = @{}
+$session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "https://outlook.office365.com/powershell-liveid/" -Credential $cred -Authentication Basic -AllowRedirection
+Import-PSSession $session -AllowClobber
+
+$index = 1
+$StartDate = (Import-Clixml .\RetrieveLogs\StartTime.xml).AddDays(-1).ToString()
+$EndDate = (Get-Date).addminutes(-30).ToString()
+
+
+[int]$msg_count = 0
+    Do{
+    $messageTrace = Get-MessageTrace -PageSize 5000 -StartDate $StartDate -EndDate $EndDate -Page $index #| Select MessageTraceID,Received,*Address,*IP,Subject,Status,Size,MessageID  #| Sort-Object Received
+    
+    $messageTrace
+    $index ++
+    $messageTrace.count
+    $msg_count = $msg_count + $messageTrace.count
+  
+    if ($messageTrace.count -gt 0){
+        $Up_date = $MesageTrace | Select-Object Received -Last 1
+        Push-OutputBinding -Name outputEventHubMessage -Value $MessageTrace
+        }
+
+
+    } 
+    while($messageTrace.count -gt 0)
+
+if($up_date -ne $null)
+{
+    $up_date | Export-Clixml .\RetrieveLogs\StartTime.xml
+}
+else {
+    (Get-Date).AddHours(-1) | Export-Clixml .\RetrieveLogs\StartTime.xml
+}

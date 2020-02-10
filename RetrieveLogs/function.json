@@ -1,0 +1,17 @@
+{
+  "bindings": [
+    {
+      "name": "Timer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 */30 * * * *"
+    },
+    {
+      "type": "eventHub",
+      "name": "outputEventHubMessage",
+      "connection": "TestHubSG_RootManageSharedAccessKey_EVENTHUB",
+      "eventHubName": "messagetrace",
+      "direction": "out"
+    }
+  ]
+}
