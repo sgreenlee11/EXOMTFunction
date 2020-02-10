@@ -20,7 +20,7 @@ $vaultSecretURI = $vaultSecretURI + "?api-version=7.0"
 $apiVersion = "2017-09-01"
 $resourceURI = "https://vault.azure.net"
 $tokenAuthURI = $env:MSI_ENDPOINT + "?resource=$resourceURI&api-version=$apiVersion"
-$tokenResponse = Invoke-RestMethod -Method Get -Headers @{"Secret"="$env:MSI_SECRET"} -Uri $tokenAuthURI
+$tokenResponse = Invoke-RestMethod -Method Get -Headers @{"Secret" = "$env:MSI_SECRET" } -Uri $tokenAuthURI
 
 # Use Key Vault AuthN Token to create Request Header
 $requestHeader = @{ Authorization = "Bearer $($tokenresponse.access_token)" }
@@ -35,35 +35,37 @@ $cred = New-Object System.Management.Automation.PSCredential ($username, $secure
 #Import-Module ExchangeOnlineManagement
 #Connect-ExchangeOnline -Credential $cred
 
-$session = @{}
+$session = @{ }
 $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "https://outlook.office365.com/powershell-liveid/" -Credential $cred -Authentication Basic -AllowRedirection
 Import-PSSession $session -AllowClobber
 
 $index = 1
-$StartDate = (Import-Clixml .\RetrieveLogs\StartTime.xml).AddDays(-1).ToString()
+If ((Test-Path .\RetrieveLogs\StartTime.xml) -eq $true) {
+    $StartDate = Import-Clixml .\RetrieveLogs\StartTime.xml
+}
+else {
+    $StartDate = (Get-Date).AddHours(-1)
+}
 $EndDate = (Get-Date).addminutes(-30).ToString()
 
 
 [int]$msg_count = 0
-    Do{
+Do {
     $messageTrace = Get-MessageTrace -PageSize 5000 -StartDate $StartDate -EndDate $EndDate -Page $index #| Select MessageTraceID,Received,*Address,*IP,Subject,Status,Size,MessageID  #| Sort-Object Received
-    
-    $messageTrace
     $index ++
     $messageTrace.count
     $msg_count = $msg_count + $messageTrace.count
   
-    if ($messageTrace.count -gt 0){
+    if ($messageTrace.count -gt 0) {
         $Up_date = $MesageTrace | Select-Object Received -Last 1
         Push-OutputBinding -Name outputEventHubMessage -Value $MessageTrace
-        }
+    }
 
 
-    } 
-    while($messageTrace.count -gt 0)
+} 
+while ($messageTrace.count -gt 0)
 
-if($up_date -ne $null)
-{
+if ($up_date -ne $null) {
     $up_date | Export-Clixml .\RetrieveLogs\StartTime.xml
 }
 else {
