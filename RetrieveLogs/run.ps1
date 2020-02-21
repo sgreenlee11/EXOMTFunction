@@ -24,8 +24,8 @@ $currentUTCtime = (Get-Date).ToUniversalTime()
 # Write an information log with the current time.
 Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
 
-#Specify Username with EXO Message trace permissions
-$username = "admin@M365x002534.onmicrosoft.com"
+#Username with MessageTrace Permissions - Read from Configuration item MessageTrace_User
+$username = $env:MessageTrace_User
 
 #Retrieve Account password from Credential Vault
 # Our Key Vault Credential that we want to retreive URI - Update with customer
