@@ -29,7 +29,7 @@ $username = $env:MessageTrace_User
 
 #Retrieve Account password from Credential Vault
 # Our Key Vault Credential that we want to retreive URI - Update with customer
-$vaultSecretURI = "https://sgo365key.vault.azure.net/secrets/ExoPassword/4cff04fe564b4a668a83262210b2156a"
+$vaultSecretURI = $env:vaultSecret_uri
 $vaultSecretURI = $vaultSecretURI + "?api-version=7.0"
 
 #Values for local token service
@@ -65,7 +65,12 @@ else {
 }
 $EndDate = (Get-Date).addminutes(-30).ToString()
 
+#Format Start and End Date for Logging
+$SimpleStart = Get-Date $StartDate -UFormat "%m/%d/%Y %R"
+$SimpleEnd = Get-Date $EndDate -UFormat "%m/%d/%Y %R"
+Write-Host "Executing Message Trace with a Start Time of $($SimpleStart) and an End Time of $($SimpleEnd)"
 
+#Loop through pages of 5000 entries until no more are returned.
 [int]$msg_count = 0
 Do {
     $messageTrace = Get-MessageTrace -PageSize 5000 -StartDate $StartDate -EndDate $EndDate -Page $index #| Select MessageTraceID,Received,*Address,*IP,Subject,Status,Size,MessageID  #| Sort-Object Received
@@ -82,9 +87,17 @@ Do {
 } 
 while ($messageTrace.count -gt 0)
 
+Write-Host "Processed a total of $($msg_count) Messages"
+
 if ($up_date -ne $null) {
     $up_date | Export-Clixml .\RetrieveLogs\StartTime.xml
+    $SimpleCheckPoint = Get-Date $up_date -UFormat "%m/%d/%Y %R"
+    Write-Host "Next Function execution will have a Start Time of $($SimpleCheckPoint)"
+
 }
 else {
-    (Get-Date).AddHours(-1) | Export-Clixml .\RetrieveLogs\StartTime.xml
+    $Checkpoint = (Get-Date).AddHours(-1)
+    $Checkpoint | Export-Clixml .\RetrieveLogs\StartTime.xml
+    $SimpleCheckPoint = Get-Date $Checkpoint -UFormat "%m/%d/%Y %R"
+    Write-Host "Next Function execution will have a Start Time of $($SimpleCheckPoint)"
 }
