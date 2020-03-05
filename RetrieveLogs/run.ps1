@@ -1,7 +1,7 @@
 <#
     
-    This is a sample Azure Storage Queue Trigger function to retrieve content 
-    blobs from the Office 365 Management and Activity API
+    This is a sample Azure Timer Trigger function to retrieve Message Trace
+    Data from Exchange Online, and export to an Azure Event Hub
     The sample scripts are not supported under any Microsoft standard support 
     program or service. The sample scripts are provided AS IS without warranty  
     of any kind. Microsoft further disclaims all implied warranties including,  
