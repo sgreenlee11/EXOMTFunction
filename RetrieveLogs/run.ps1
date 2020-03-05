@@ -61,7 +61,7 @@ If ((Test-Path .\RetrieveLogs\StartTime.xml) -eq $true) {
     $StartDate = Import-Clixml .\RetrieveLogs\StartTime.xml
 }
 else {
-    $StartDate = (Get-Date).AddHours(-1)
+    $StartDate = (Get-Date).AddMinutes(-35)
 }
 $EndDate = (Get-Date).addminutes(-30).ToString()
 
@@ -96,7 +96,7 @@ if ($up_date -ne $null) {
 
 }
 else {
-    $Checkpoint = (Get-Date).AddHours(-1)
+    $EndDate
     $Checkpoint | Export-Clixml .\RetrieveLogs\StartTime.xml
     $SimpleCheckPoint = Get-Date $Checkpoint -UFormat "%m/%d/%Y %R"
     Write-Host "Next Function execution will have a Start Time of $($SimpleCheckPoint)"
