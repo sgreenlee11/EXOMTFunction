@@ -66,8 +66,8 @@ else {
 $EndDate = (Get-Date).addminutes(-30).ToString()
 
 #Format Start and End Date for Logging
-$SimpleStart = Get-Date $StartDate -UFormat "%m/%d/%Y %R"
-$SimpleEnd = Get-Date $EndDate -UFormat "%m/%d/%Y %R"
+$SimpleStart = Get-Date -Date $StartDate -UFormat "%m/%d/%Y %R"
+$SimpleEnd = Get-Date -Date $EndDate -UFormat "%m/%d/%Y %R"
 Write-Host "Executing Message Trace with a Start Time of $($SimpleStart) and an End Time of $($SimpleEnd)"
 
 #Loop through pages of 5000 entries until no more are returned.
@@ -91,12 +91,12 @@ Write-Host "Processed a total of $($msg_count) Messages"
 
 if ($up_date -ne $null) {
     $up_date | Export-Clixml .\RetrieveLogs\StartTime.xml
-    $SimpleCheckPoint = Get-Date $up_date -UFormat "%m/%d/%Y %R"
+    $SimpleCheckPoint = Get-Date -Date $up_date -UFormat "%m/%d/%Y %R"
     Write-Host "Next Function execution will have a Start Time of $($SimpleCheckPoint)"
 
 }
 else {
-    $EndDate
+    $CheckPoint = $EndDate
     $Checkpoint | Export-Clixml .\RetrieveLogs\StartTime.xml
     $SimpleCheckPoint = Get-Date $Checkpoint -UFormat "%m/%d/%Y %R"
     Write-Host "Next Function execution will have a Start Time of $($SimpleCheckPoint)"
